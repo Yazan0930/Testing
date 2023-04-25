@@ -22,14 +22,13 @@ class DAO:
         """
 
         # load the local mongo URL (something like mongodb://localhost:27017)
-        LOCAL_MONGO_URL = dotenv_values('.env').get('MONGO_URL')
-        # check out of the environment (which can be overridden by the docker-compose file) also specifies an URL, and use that instead if it exists
-        MONGO_URL = os.environ.get('MONGO_URL', LOCAL_MONGO_URL)
+        username = "root"
+        password = "root"
 
         # connect to the MongoDB and select the appropriate database
         print(
-            f'Connecting to collection {collection_name} on MongoDB at url {MONGO_URL}')
-        client = pymongo.MongoClient(MONGO_URL)
+            f'Connecting to collection {collection_name}')
+        client = pymongo.MongoClient('mongodb://%s:%s@127.0.0.1' % (username, password))
         database = client.edutask
 
         # create the collection if it does not yet exist
