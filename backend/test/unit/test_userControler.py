@@ -34,6 +34,7 @@ def controller(dao_mock):
     controller = UserController(dao_mock)
     yield controller
 
+@pytest.mark.unit
 class TestUserController:
     def test_get_user_by_email_success(self, dao_mock, controller):
         dao_mock.find.return_value = [{'email': 'test@example.com', 'name': 'Test User'}]
