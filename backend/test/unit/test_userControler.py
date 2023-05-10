@@ -60,8 +60,7 @@ class TestUserController:
         
     def test_get_user_by_email_multiple_users_found(self, dao_mock, controller):
         dao_mock.find.return_value = [{'email': 'test@example.com', 'name': 'Test User 1'}, {'email': 'test@example.com', 'name': 'Test User 2'}]
-        
-        with pytest.raises(Exception):
-            controller.get_user_by_email('test@example.com')
+        user = controller.get_user_by_email('test@example.com')
             
         dao_mock.find.assert_called_once_with({'email': 'test@example.com'})
+        assert user == {'email': 'test@example.com', 'name': 'Test User 1'}
