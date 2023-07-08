@@ -1,206 +1,180 @@
-describe("R8UC1: create a ToDo item", () => {
-	let uid;
+describe('Logging into the system', () => {
+    let userId 
+    let userName 
+    let userEmail 
+    let todoid
+  
+  
+    beforeEach(function () {
+      // create a fabricated user from a fixture
+      cy.viewport(1000, 1600);
+      cy.fixture('user.json').then((user) => {
+        cy.request({
+          method: 'POST',
+          url: 'http://localhost:5000/users/create',
+          form: true,
+          body: user
+        }).then((response) => {
+          userId = response.body._id.$oid
+          userName = user.firstName + ' ' + user.lastName
+          userEmail = user.email
+  
+          cy.visit('http://localhost:3000')  
+          cy.get('h1')
+            .should('contain.text', 'Login')
+  
+          cy.contains('div', 'Email Address')
+            .find('input[type=text]')
+            .type(userEmail)
+  
+        cy.get('form')
+            .submit()
+  
+          cy.contains('div', 'title')
+          .find('input[type=text]')
+          cy.get('#title')
+          .type('myFirstTask')
+          cy.get('[type="submit"]').click()
+  
+          cy.get('.main > :nth-child(1)')
+            .should('contain.text', 'myFirstTask')
+  
+          cy.get(':nth-child(1) > a > img').trigger('click')
+  
+        cy.get('.popup-inner').should('be.visible');
 
-	before(() => {
-		// Create a user
-		cy.fixture("user.json").then((user) => {
-			cy.request(
-				"POST",
-				"http://localhost:5000/users/create",
-				user
-			).then((response) => {
-				uid = response.body._id.$oid;
-			});
-		});
-	});
+        cy.get('h1 > .editable').should('contain.text', 'myFirstTask')   
+        })
+      })
+    })
+  
+    // R8UC1: create a ToDo item
+    it("When a user enters text into textfield and presses add, new todo should be created", () => {
+      cy.get('.inline-form > [type="text"]').click()
+      cy.get('.inline-form > [type="text"]').clear()
+      cy.get('.inline-form > [type="text"]').type('myFirstTodoDescription')
+  
+      cy.get('.inline-form > [type="submit"]').should('be.enabled')
+    })
+    
+    it("If the text field is left empty then the todo should not be added when the user clicks add & textfield should get red border", () => {
+      cy.get('.inline-form > [type="text"]').click()
+      cy.get('.inline-form > [type="text"]').clear()
+      
+      cy.get('.inline-form > [type="submit"]').should('be.disabled')
+    })
+  
+    it("Add button should be disabled when description is empty", () => {
+        cy.get('.inline-form > [type="text"]').click()
+        cy.get('.inline-form > [type="text"]').clear()
+        
+        cy.get('.inline-form > [type="submit"]').should('be.disabled')
+      })
+  
+    it("Add subtask to the bottom when description is filled and add button is enabled", () => {
+      cy.get('.inline-form > [type="text"]').click()
+      cy.get('.inline-form > [type="text"]').clear()
+  
+      cy.get('.inline-form > [type="text"]').type('myFirstTodoDescription')
+      cy.get('.inline-form > [type="submit"]').should('be.enabled')
+      cy.get('.inline-form > [type="submit"]').click()
+  
+      cy.get('.inline-form > [type="text"]').type('mySecondTodoDescription')
+      cy.get('.inline-form > [type="submit"]').should('be.enabled')
+      cy.get('.inline-form > [type="submit"]').click()
+      
+      cy.get('.todo-list > :nth-child(3)').should('contain.text', 'mySecondTodoDescription')
+      cy.get('.todo-list > :nth-child(3)').should('contain.text', 'mySecondTodoDescription')
+      
+    })
 
-	beforeEach(() => {
-		// Log in the user
-		cy.visit("localhost:3000");
-		cy.contains("div", "Email Address")
-			.find("input[type=text]")
-			.type("user4@gmail.com");
-		cy.get("form").submit();
-	});
+    beforeEach(function () {
+        cy.visit('http://localhost:3000')
 
-	it("User should have at least one task", () => {
-		// Verify that the user has a task
-		cy.request(
-			`http://localhost:5000/users/${uid}/tasks`
-		).then((response) => {
-			expect(
-				response.body.length
-			).to.be.greaterThan(0);
-		});
-	});
+        cy.get('h1')
+            .should('contain.text', 'Login')
 
-	it("TC1: When a user enters text into the text field and presses add, a new todo should be created", () => {
-		cy.get(".container-element > a")
-			.first()
-			.click();
-		cy.get(".inline-form")
-			.find("input[type=text]")
-			.type("Hello world", { force: true });
+        cy.contains('div', 'Email Address')
+            .find('input[type=text]')
+            .type(userEmail)
 
-		cy.get(".inline-form")
-			.find("input[type=submit]")
-			.click({ force: true });
+        cy.get('form')
+            .submit()
 
-		cy.get(
-			".todo-list > :nth-child(2) > .editable"
-		).contains("Hello world");
-	});
+        cy.contains('div', 'title')
+        .find('input[type=text]')
+        cy.get('#title')
+        .type('myFirstTask')
+        cy.get('[type="submit"]').click()
 
-	it("TC2: If the text field is left empty, the todo should not be added when the user clicks add, and the text field should get a red border", () => {
-		cy.get(".container-element > a")
-			.first()
-			.click();
+        cy.get('.main > :nth-child(1)')
+            .should('contain.text', 'myFirstTask')
 
-		// Do not enter any text in the input field
+        cy.get(':nth-child(1) > a > img').trigger('click')
+        
+        cy.get('.inline-form > [type="text"]').click()
+        cy.get('.inline-form > [type="text"]').clear()
 
-		cy.get(".inline-form")
-			.find("input[type=submit]")
-			.click({ force: true });
+        cy.get('.inline-form > [type="text"]').type('myFirstTodoDescription')
+        cy.get('.inline-form > [type="submit"]').should('be.enabled')
+        cy.get('.inline-form > [type="submit"]').click()
+        cy.wait(3000)
+        cy.request({
+            method: 'GET',
+            url: `http://localhost:5000/tasks/ofuser/${userId}`
+        }).then((response) => {
+            cy.log(response)
+            todoid = response.body[0].todos[0]._id.$oid
+        })
+        })
+    })
+  
+    // R8UC2: marking todo items as done
+    it("Clicking icon before the todo item should mark the todo item as done with line threw", () => {
+        cy.get('.todo-list > :nth-child(2) .checker').click()
+        .should('have.class', 'checked')
+        cy.get('.todo-list > :nth-child(2) .editable')
+        .should('have.css', 'text-decoration', 'line-through solid rgb(49, 46, 46)')
+    })
+  
+    it("Clicking the icon again should make todo unDone",() =>{
+        console.log(todoid)
+        cy.fixture("todo.json").then((todo) => {
+            cy.request({
+                method: 'PUT',
+                url: `http://localhost:5000/todos/byid/${todoid}`,
+                form: true,
+                body: todo
+              }).then((response) => {
+                cy.log(response)
+              })
+          })
+          cy.get('.todo-list > :nth-child(1) .checker').click()
+          cy.get('.todo-list > :nth-child(1) .editable')
+          .should('have.css', 'text-decoration', 'line-through solid rgb(49, 46, 46)')
+          cy.get('.todo-list > :nth-child(1) .checker')
+          .should('have.class', 'checked')
+          .click()
+          .should('not.have.css', 'text-decoration', 'line-through solid rgb(49, 46, 46)')
+    })
+  
+    
+    // R8UC3: deleting todo items
+    it('Clicking on the "x" beside the todo item should remove it from the list', ()=>{
+        cy.get('ul.todo-list')
+        .should('contain.text', 'myFirstTodoDescription')
+        cy.get(':nth-child(2) > .remover').click()
+        cy.get('ul.todo-list')
+        .should('not.contain.text', 'myFirstTodoDescription')
+    })
 
-		cy.get(".inline-form")
-			.find("input[type=text]")
-			.should("have.class", "error");
-	});
+    afterEach(function () {
+        // clean up by deleting the user from the database 
 
-	afterEach(() => {
-		// Clean up the user and tasks from the database after each test
-		cy.request(
-			"DELETE",
-			`http://localhost:5000/users/${uid}`
-		);
-	});
-});
-
-describe("R8UC2: marking todo items as done", () => {
-	let uid;
-
-	before(() => {
-		// Create a user
-		cy.fixture("user.json").then((user) => {
-			cy.request(
-				"POST",
-				"http://localhost:5000/users/create",
-				user
-			).then((response) => {
-				uid = response.body._id.$oid;
-
-				// Create a task for the user
-				cy.fixture("task.json").then(
-					(task) => {
-						cy.request(
-							"POST",
-							`http://localhost:5000/users/${uid}/tasks`,
-							task
-						);
-					}
-				);
-			});
-		});
-	});
-
-	beforeEach(() => {
-		// Log in the user
-		cy.visit("localhost:3000");
-		cy.contains("div", "Email Address")
-			.find("input[type=text]")
-			.type("user4@gmail.com");
-		cy.get("form").submit();
-	});
-
-	it("TC1: Clicking icon before the todo item should mark the todo item as done with line through", () => {
-		cy.get(".todo-list")
-			.first()
-			.find(".todo-item")
-			.find(".checker")
-			.click();
-
-		cy.get(".todo-list")
-			.get(".todo-item")
-			.first()
-			.find(".checker")
-			.should("have.class", "checked");
-	});
-
-	it("TC2: Clicking the icon again should make todo undone", () => {
-		cy.get(".todo-list")
-			.get(".todo-item")
-			.first()
-			.find(".checker")
-			.click();
-
-		cy.get(".todo-list")
-			.get(".todo-item")
-			.first()
-			.find(".checker")
-			.should("not.have.class", "checked");
-	});
-
-	afterEach(() => {
-		// Clean up the user and tasks from the database after each test
-		cy.request(
-			"DELETE",
-			`http://localhost:5000/users/${uid}`
-		);
-	});
-});
-
-describe("R8UC3: deleting todo items", () => {
-	let uid;
-
-	before(() => {
-		// Create a user
-		cy.fixture("user.json").then((user) => {
-			cy.request(
-				"POST",
-				"http://localhost:5000/users/create",
-				user
-			).then((response) => {
-				uid = response.body._id.$oid;
-
-				// Create a task for the user
-				cy.fixture("task.json").then(
-					(task) => {
-						cy.request(
-							"POST",
-							`http://localhost:5000/users/${uid}/tasks`,
-							task
-						);
-					}
-				);
-			});
-		});
-	});
-
-	beforeEach(() => {
-		// Log in the user
-		cy.visit("localhost:3000");
-		cy.contains("div", "Email Address")
-			.find("input[type=text]")
-			.type("user4@gmail.com");
-		cy.get("form").submit();
-	});
-
-	it('TC1: Clicking on the "x" beside the todo item should remove it from the list', () => {
-		cy.get(
-			".todo-list > :nth-child(2) > .remover"
-		).click();
-
-		cy.get(".todo-list")
-			.get(".todo-item")
-			.contains("Hello world")
-			.should("not.exist");
-	});
-
-	afterEach(() => {
-		// Clean up the user and tasks from the database after each test
-		cy.request(
-			"DELETE",
-			`http://localhost:5000/users/${uid}`
-		);
-	});
-});
+        cy.request({
+        method: 'DELETE',
+        url: `http://localhost:5000/users/${userId}`
+        }).then((response) => {
+        cy.log(response.body)
+        })  
+    })
